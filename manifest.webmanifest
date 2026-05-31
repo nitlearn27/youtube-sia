@@ -1,0 +1,19 @@
+{
+  "name": "Sia's Videos",
+  "short_name": "Sia",
+  "description": "A safe, curated YouTube player for a toddler.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f0f1a",
+  "theme_color": "#0f0f1a",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

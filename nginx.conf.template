@@ -1,0 +1,20 @@
+server {
+    listen       ${PORT};
+    server_name  _;
+    root         /usr/share/nginx/html;
+    index        index.html;
+
+    # Don't cache the service worker so app updates roll out immediately.
+    location = /service-worker.js {
+        add_header Cache-Control "no-cache";
+    }
+
+    # Ensure the PWA manifest is served with the correct content type.
+    location = /manifest.webmanifest {
+        default_type application/manifest+json;
+    }
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+}

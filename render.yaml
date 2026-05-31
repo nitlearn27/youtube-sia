@@ -1,0 +1,9 @@
+# Render Blueprint — deploys "Sia's Videos" as a Dockerized nginx static site.
+# In the Render dashboard: New → Blueprint → pick this repo, and it auto-configures.
+services:
+  - type: web
+    name: sia-videos
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /
