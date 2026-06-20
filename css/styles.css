@@ -146,6 +146,40 @@ button { font-family: inherit; cursor: pointer; }
   line-height: 1.5;
   background: #000;
 }
+/* floating rotate toggle — stays above the (possibly rotated) video so it's
+   always tappable, including to rotate back */
+.rotate-btn {
+  position: fixed;
+  top: calc(10px + var(--safe-top));
+  right: 12px;
+  z-index: 10;
+  width: 48px;
+  height: 48px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(31, 31, 53, .72);
+  color: var(--text);
+  font-size: 24px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.rotate-btn:active { background: var(--accent2); }
+
+/* landscape mode: rotate the player 90° and size it to the swapped viewport so
+   a 16:9 video fills a portrait-held phone instead of sitting letterboxed */
+#screen-player.rotated .player-wrap {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 100vh;
+  height: 100vw;
+  transform: translate(-50%, -50%) rotate(90deg);
+  transform-origin: center;
+  z-index: 8;
+}
+
 .player-bar {
   display: flex;
   justify-content: space-around;

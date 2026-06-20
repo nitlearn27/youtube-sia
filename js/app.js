@@ -72,13 +72,23 @@ function go(dir) {
 
 function backToGrid() {
   Player.stopVideo();
+  setRotated(false); // never leave the player stuck in landscape
   showScreen('grid');
+}
+
+// ---------- rotate (landscape) ----------
+// Toggling a class rotates the player via CSS — no native fullscreen, which
+// would expose YouTube's UI and isn't reliable on iOS.
+function setRotated(on) {
+  screens.player.classList.toggle('rotated', on);
 }
 
 // ---------- buttons ----------
 document.getElementById('btn-back').addEventListener('click', backToGrid);
 document.getElementById('btn-next').addEventListener('click', () => go(1));
 document.getElementById('btn-playpause').addEventListener('click', Player.togglePlay);
+document.getElementById('btn-rotate').addEventListener('click', () =>
+  setRotated(!screens.player.classList.contains('rotated')));
 
 // ---------- swipe / scroll to change video, tap to play-pause ----------
 const shield = document.getElementById('tap-shield');
