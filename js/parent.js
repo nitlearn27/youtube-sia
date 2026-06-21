@@ -146,6 +146,26 @@ function wireManager() {
     setMsg('');
     showPinView();
   });
+  document.getElementById('update-app').addEventListener('click', forceUpdate);
+}
+
+// Wipe every cache + the service worker, then hard-reload so the very latest
+// files are fetched from the network. Lets a parent pull updates without
+// uninstalling/reinstalling the app.
+async function forceUpdate() {
+  addMsg('Updating…');
+  try {
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map((r) => r.unregister()));
+    }
+    if ('caches' in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((k) => caches.delete(k)));
+    }
+  } catch (_) { /* reload anyway */ }
+  // cache-busting query so the browser HTTP cache can't serve stale files either
+  location.replace(location.pathname + '?u=' + Date.now());
 }
 
 async function onAdd() {

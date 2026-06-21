@@ -135,6 +135,33 @@ initParent({ showScreen, refreshGrid: renderGrid });
 
 renderGrid();
 
+// ---------- Add to Home Screen (Android / Chromium) ----------
+// The browser fires `beforeinstallprompt` only when the app is actually
+// installable (HTTPS, has a manifest + service worker, not already installed).
+// We stash it and reveal the parent "Install app" button so a grown-up can
+// trigger the native install prompt on demand.
+let deferredInstall = null;
+const installBtn = document.getElementById('install-app');
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault(); // stop Chrome's mini-infobar; we trigger it ourselves
+  deferredInstall = e;
+  installBtn.classList.remove('hidden');
+});
+
+installBtn.addEventListener('click', async () => {
+  if (!deferredInstall) return;
+  deferredInstall.prompt();
+  await deferredInstall.userChoice;
+  deferredInstall = null;
+  installBtn.classList.add('hidden'); // a prompt can only be used once
+});
+
+window.addEventListener('appinstalled', () => {
+  deferredInstall = null;
+  installBtn.classList.add('hidden');
+});
+
 // ---------- PWA service worker ----------
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {

@@ -289,4 +289,9 @@ button { font-family: inherit; cursor: pointer; }
 .icon-btn.danger:active { background: var(--accent); }
 .move-col { display: flex; flex-direction: column; gap: 4px; }
 .move-col .icon-btn { width: 36px; height: 28px; font-size: 14px; }
-#change-pin { margin-top: 12px; align-self: center; }
+.manager-footer {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
+}
