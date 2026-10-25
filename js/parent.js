@@ -1,11 +1,11 @@
-// Parent area: reached via a long-press on the grid's top-right hotspot,
-// gated by a 4-digit PIN. Lets the parent add / remove / reorder videos.
+// PIN-protected parent dashboard and video manager.
 
 import {
   hasPin, setPin, verifyPin,
   getVideos, addVideo, removeVideo, moveVideo,
 } from './storage.js';
 import { parseYouTubeId, fetchTitle, thumbUrl } from './youtube.js';
+import { initDashboard, renderDashboard } from './dashboard.js';
 
 let api = {}; // { showScreen(name), refreshGrid() }
 let buffer = '';
@@ -17,6 +17,19 @@ export function initParent(callbacks) {
   setupEntry();
   buildPinPad();
   wireManager();
+  initDashboard();
+  document.querySelectorAll('.parent-tab').forEach((button) => {
+    button.addEventListener('click', () => selectPanel(button.dataset.panel));
+    button.addEventListener('keydown', (event) => {
+      if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+      event.preventDefault();
+      const tabs = [...document.querySelectorAll('.parent-tab')];
+      const next = event.key === 'Home' ? tabs[0] : event.key === 'End' ? tabs.at(-1)
+        : tabs[(tabs.indexOf(button) + (event.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+      next.focus();
+      selectPanel(next.dataset.panel);
+    });
+  });
 }
 
 // ---------- entry ----------
@@ -130,6 +143,18 @@ function openManager() {
   document.getElementById('pin-view').classList.add('hidden');
   document.getElementById('manager-view').classList.remove('hidden');
   renderList();
+  selectPanel('dashboard');
+}
+
+function selectPanel(name) {
+  document.querySelectorAll('.parent-tab').forEach((button) => {
+    const active = button.dataset.panel === name;
+    button.setAttribute('aria-selected', String(active));
+    button.tabIndex = active ? 0 : -1;
+  });
+  document.getElementById('dashboard-panel').classList.toggle('hidden', name !== 'dashboard');
+  document.getElementById('videos-panel').classList.toggle('hidden', name !== 'videos');
+  if (name === 'dashboard') renderDashboard();
 }
 
 // ---------- manager ----------

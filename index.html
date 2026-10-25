@@ -61,17 +61,56 @@
     <!-- Manager view -->
     <div id="manager-view" class="manager-view hidden">
       <header class="topbar">
-        <h2 class="brand">Manage videos</h2>
+        <h2 class="brand">Parent area</h2>
         <button id="parent-done" class="text-btn">Done</button>
       </header>
-      <div class="add-row">
-        <input id="add-url" type="url" inputmode="url" autocomplete="off"
-               autocapitalize="off" spellcheck="false"
-               placeholder="Paste a YouTube link">
-        <button id="add-btn">Add</button>
+      <div class="parent-tabs" role="tablist" aria-label="Parent sections">
+        <button id="dashboard-tab" class="parent-tab" role="tab" data-panel="dashboard"
+                aria-controls="dashboard-panel" aria-selected="true">Dashboard</button>
+        <button id="videos-tab" class="parent-tab" role="tab" data-panel="videos"
+                aria-controls="videos-panel" aria-selected="false" tabindex="-1">Manage videos</button>
       </div>
-      <p id="add-msg" class="add-msg"></p>
-      <ul id="manage-list" class="manage-list"></ul>
+      <div id="dashboard-panel" class="parent-panel dashboard-panel" role="tabpanel" aria-labelledby="dashboard-tab">
+        <div class="dashboard-intro">
+          <h3>Viewing activity</h3>
+          <p>Playback recorded in this app on this device. No AI or API key needed.</p>
+        </div>
+        <div class="metrics-filters">
+          <label>Period
+            <select id="metrics-range">
+              <option value="today">Today</option>
+              <option value="7" selected>Last 7 days</option>
+              <option value="30">Last 30 days</option>
+              <option value="all">All time</option>
+            </select>
+          </label>
+          <label>Sort videos
+            <select id="metrics-sort">
+              <option value="watchSeconds">Most watched</option>
+              <option value="plays">Most played</option>
+              <option value="interactions">Most interactions</option>
+              <option value="lastWatchedAt">Recently watched</option>
+            </select>
+          </label>
+        </div>
+        <p id="metrics-error" class="metrics-error hidden" role="status"></p>
+        <dl id="metrics-totals" class="metrics-totals"></dl>
+        <p id="metrics-highlight" class="metrics-highlight"></p>
+        <p id="metrics-empty" class="metrics-empty">No activity recorded for this period. Metrics start with this update; earlier viewing history is unavailable.</p>
+        <div id="metrics-videos" class="metrics-videos"></div>
+        <p class="metrics-note">Watch time is estimated from video progress while the app is visible; pauses, buffering and background time are excluded. A play is counted once per video start, including autoplay. Completed means the video reached its end while visible. Interactions count grid selections, pause/resume taps, skips and returns to the list; they do not measure attention or learning.</p>
+        <button id="clear-metrics" class="text-btn clear-metrics">Clear viewing metrics</button>
+      </div>
+      <div id="videos-panel" class="parent-panel videos-panel hidden" role="tabpanel" aria-labelledby="videos-tab">
+        <div class="add-row">
+          <input id="add-url" type="url" inputmode="url" autocomplete="off"
+                 autocapitalize="off" spellcheck="false"
+                 placeholder="Paste a YouTube link">
+          <button id="add-btn">Add</button>
+        </div>
+        <p id="add-msg" class="add-msg"></p>
+        <ul id="manage-list" class="manage-list"></ul>
+      </div>
       <div class="manager-footer">
         <button id="change-pin" class="text-btn">Change PIN</button>
         <button id="update-app" class="text-btn">🔄 Update app</button>

@@ -18,7 +18,8 @@ backend, no API key, no dependencies**. Just serve the folder.
 npx serve .              # or: python3 -m http.server 8080
 ```
 
-There is no build, no bundler, no test suite, no linter configured. Edit a file
+There is no build, bundler, or linter configured. Run the dependency-free metrics
+and player tests with `node --test tests/*.test.mjs` (Node 22.7+). Edit a file
 and reload. `localhost` and any `https://` origin are secure contexts (real
 SHA-256 PIN hashing); plain `http://` LAN IPs fall back to a weak hash (see
 `js/storage.js`) — acceptable because a child's PIN isn't a real secret.
@@ -38,7 +39,17 @@ modules wire everything together — no framework.
   and PIN hash (`sia.pin`). No accounts; per-device, per-origin.
 - `js/youtube.js` — keyless helpers: link → 11-char id parsing, thumbnail URLs,
   oEmbed title lookup.
-- `js/parent.js` — PIN pad + add/remove/reorder UI.
+- `js/parent.js` — PIN pad + Dashboard / Manage videos tabs.
+- `js/metrics.js` — device-local daily video counters (`sia.metrics`) and playback
+  accounting. Tracks visible playback progress, plays, autoplay starts,
+  completions, grid selections, pause/resume taps, skips, and exits. Flushes watch
+  time every five seconds and on playback/visibility transitions. Pauses,
+  buffering, seeks, background time, and long suspended intervals do not count.
+- `js/dashboard.js` — parent-only totals and per-video metrics, calendar-day
+  filters, sorting, and clearing metrics without deleting videos or the PIN.
+  Removed videos keep their historical counters; metrics start from this update
+  and do not import earlier YouTube history. Counters describe app usage, not
+  attention or learning. No AI, API key, backend, or external analytics service.
 - `css/styles.css` — mobile-first dark theme, large tap targets.
 - `service-worker.js` — caches the app shell for offline UI.
 
@@ -70,12 +81,9 @@ no cold starts.
 
 ## Notes
 
-- README.md describes parent entry as a long-press on the top-right corner, but
-  the current code uses a visible `⋮` button (`#parent-btn` → `openParent`);
-  the PIN gate is unchanged. Update the README if this matters.
+- Parent entry uses the visible `⋮` button (`#parent-btn` → `openParent`);
+  Dashboard is the default tab after PIN verification.
 - The app icon is `icons/icon.svg` — a YouTube-red rounded square with a dark
   inner panel and white play triangle.
 - Some videos have embedding disabled by their owner; those show a friendly
   error with Next/Back still working.
-</content>
-</invoke>

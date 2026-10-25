@@ -4,6 +4,10 @@ import { getVideos } from './storage.js';
 import { thumbUrl } from './youtube.js';
 import * as Player from './player.js';
 import { initParent } from './parent.js';
+import { createWatchTracker } from './metrics.js';
+
+const metrics = createWatchTracker();
+metrics.setVisible(!document.hidden, null);
 
 const screens = {
   grid: document.getElementById('screen-grid'),
@@ -54,23 +58,26 @@ function openFeed(index) {
   if (!playlist.length) return;
   current = index;
   showScreen('player');
-  loadCurrent();
+  loadCurrent('grid');
 }
 
-function loadCurrent() {
+function loadCurrent(source = 'manual') {
   document.getElementById('player-error').classList.add('hidden');
+  metrics.start(playlist[current], source);
   Player.loadVideo(playlist[current].videoId);
 }
 
 // move by `dir` (+1 next / -1 prev), wrapping around the list (round-robin)
-function go(dir) {
+function go(dir, source = 'manual') {
   if (!playlist.length) return;
+  metrics.finish(source === 'auto' ? null : 'skips', Player.getPlayback());
   const n = playlist.length;
   current = (((current + dir) % n) + n) % n;
-  loadCurrent();
+  loadCurrent(source);
 }
 
 function backToGrid() {
+  metrics.finish('exits', Player.getPlayback());
   Player.stopVideo();
   setRotated(false); // never leave the player stuck in landscape
   showScreen('grid');
@@ -86,7 +93,13 @@ function setRotated(on) {
 // ---------- buttons ----------
 document.getElementById('btn-back').addEventListener('click', backToGrid);
 document.getElementById('btn-next').addEventListener('click', () => go(1));
-document.getElementById('btn-playpause').addEventListener('click', Player.togglePlay);
+function togglePlay() {
+  metrics.update(Player.getPlayback());
+  const action = Player.togglePlay();
+  if (action) metrics.interact(action);
+}
+
+document.getElementById('btn-playpause').addEventListener('click', togglePlay);
 document.getElementById('btn-rotate').addEventListener('click', () =>
   setRotated(!screens.player.classList.contains('rotated')));
 
@@ -111,7 +124,7 @@ shield.addEventListener('touchend', (e) => {
 
 shield.addEventListener('click', () => {
   if (swiped) { swiped = false; return; } // ignore the click after a swipe
-  Player.togglePlay();
+  togglePlay();
 });
 
 // desktop: mouse-wheel / trackpad scroll changes the video (throttled)
@@ -124,12 +137,24 @@ shield.addEventListener('wheel', (e) => {
 }, { passive: true });
 
 Player.initPlayer({
-  onEnded: () => go(1), // auto-advance to the next video when one finishes
+  onEnded: () => go(1, 'auto'), // auto-advance to the next curated video
+  onPlayback: (snapshot) => metrics.update(snapshot),
   onPlayState: (playing) => {
     document.getElementById('btn-playpause').textContent = playing ? '⏸️' : '▶️';
   },
-  onError: () => document.getElementById('player-error').classList.remove('hidden'),
+  onError: () => {
+    metrics.finish(null, Player.getPlayback());
+    document.getElementById('player-error').classList.remove('hidden');
+  },
 });
+
+// Sample progress, not open-screen duration. Persist at least every five seconds
+// and on transitions so refreshes and mobile backgrounding retain recent activity.
+setInterval(() => metrics.update(Player.getPlayback()), 1000);
+document.addEventListener('visibilitychange', () =>
+  metrics.setVisible(!document.hidden, Player.getPlayback()));
+window.addEventListener('pagehide', () => metrics.setVisible(false, Player.getPlayback()));
+window.addEventListener('pageshow', () => metrics.setVisible(!document.hidden, Player.getPlayback()));
 
 initParent({ showScreen, refreshGrid: renderGrid });
 

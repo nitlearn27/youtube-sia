@@ -8,6 +8,7 @@ let player = null;
 let ready = false;
 let cb = {};
 let pendingId = null; // video requested before the player finished loading
+let requestedId = null;
 
 // Resolve once the IFrame API is available. The API calls a global
 // onYouTubeIframeAPIReady when loaded; we also poll in case it fired first.
@@ -52,31 +53,61 @@ export async function initPlayer(callbacks) {
         }
       },
       onStateChange: onStateChange,
-      onError: () => cb.onError && cb.onError(),
+      onError: () => {
+        if (requestedId && cb.onError) cb.onError();
+      },
     },
   });
 }
 
 function onStateChange(e) {
   const S = YT.PlayerState;
-  if (e.data === S.ENDED && cb.onEnded) cb.onEnded();
+  const snapshot = getPlayback();
+  // Late events from the previous video must not affect the next video's metrics.
+  if (!snapshot || snapshot.videoId !== requestedId) return;
+  if (cb.onPlayback) cb.onPlayback(snapshot);
   if (cb.onPlayState) {
-    if (e.data === S.PLAYING) cb.onPlayState(true);
-    else if (e.data === S.PAUSED || e.data === S.ENDED) cb.onPlayState(false);
+    cb.onPlayState(snapshot.state === 'playing');
   }
+  // Record the end before loading the next video into the same player.
+  if (e.data === S.ENDED && snapshot.state === 'ended' && cb.onEnded) cb.onEnded();
 }
 
 export function loadVideo(videoId) {
+  requestedId = videoId;
   if (player && ready) player.loadVideoById(videoId);
   else pendingId = videoId; // play it as soon as the player is ready
 }
 
 export function togglePlay() {
-  if (!player || !ready) return;
-  if (player.getPlayerState() === YT.PlayerState.PLAYING) player.pauseVideo();
-  else player.playVideo();
+  if (!player || !ready || !requestedId) return null;
+  const state = player.getPlayerState();
+  if (state === YT.PlayerState.PLAYING) {
+    player.pauseVideo();
+    return 'pauses';
+  }
+  player.playVideo();
+  return state === YT.PlayerState.PAUSED ? 'resumes' : null;
 }
 
 export function stopVideo() {
+  pendingId = null;
+  requestedId = null;
   if (player && ready) player.stopVideo();
+}
+
+export function getPlayback() {
+  if (!player || !ready || !requestedId) return null;
+  try {
+    const videoId = new URL(player.getVideoUrl()).searchParams.get('v');
+    if (videoId !== requestedId) return null;
+    return {
+      videoId,
+      state: ({ '-1': 'unstarted', 0: 'ended', 1: 'playing', 2: 'paused', 3: 'buffering', 5: 'cued' })[player.getPlayerState()],
+      position: player.getCurrentTime(),
+      rate: player.getPlaybackRate(),
+    };
+  } catch {
+    return null;
+  }
 }

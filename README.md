@@ -38,16 +38,50 @@ To try it on a phone on the same Wi-Fi, use your computer's LAN IP
 
 ## Add videos (parent)
 
-1. On the grid, **long-press the top-right corner for ~1.2 seconds**.
+1. On the grid, tap the **⋮ button in the top-right corner**.
 2. The first time, **create a 4-digit PIN** (you'll confirm it). After that,
    you'll just enter the PIN.
-3. Paste a YouTube link and tap **Add**. The title fills in automatically.
+3. Select **Manage videos**, paste a YouTube link and tap **Add**. The title fills in automatically.
    Supported link shapes: `youtube.com/watch?v=…`, `youtu.be/…`,
    `youtube.com/shorts/…`, `/embed/…`, or a bare 11-character video ID.
 4. Reorder with ▲ / ▼ or remove with 🗑️. Tap **Done** to return to the grid.
 5. **Change PIN** is at the bottom of the manage screen.
 
 The list and PIN are stored on the device (localStorage) — private, no account.
+
+## Parent dashboard
+
+Open **⋮ → enter your PIN → Dashboard** to see total and per-video activity:
+
+- Watch time, plays, completions, and last watched time.
+- Manual versus autoplay starts, selections from the grid, pause/resume taps,
+  skips, and returns to the list. These actions make up the interaction count;
+  autoplay is not an interaction.
+- Today, last 7 days, last 30 days, or all-time filters, with sorting by watch
+  time, plays, interactions, or most recently watched. Periods use this device's
+  local calendar days and include today.
+
+Watch time is an estimate based on video progress while the app is visible.
+Pauses, buffering, background time, seeks, and long gaps from a suspended app
+are excluded. A play is counted once when a video starts playing, so resuming
+after a pause does not count as another play. A completion means a video reached
+its end while visible. The metrics measure app usage, not attention or learning.
+
+Metrics are calculated automatically without AI, API keys, or an analytics
+service. They stay in this browser's localStorage under `sia.metrics`, on this
+device and origin. Tracking starts with this update; earlier viewing history
+cannot be reconstructed, and watching outside this app is not included. Recent
+watch time is saved every five seconds and on transitions; an abrupt browser
+crash may lose the last few seconds. Clearing browser data removes the metrics.
+
+Removing a video preserves its historical metrics. **Clear viewing metrics**
+resets all metrics after confirmation and keeps your video list and PIN.
+
+Run the dependency-free accounting and player tests with Node 22.7 or newer:
+
+```bash
+node --test tests/*.test.mjs
+```
 
 ## Install to the home screen
 
@@ -110,9 +144,12 @@ css/styles.css        mobile-first dark theme, large tap targets
 js/storage.js         video list + PIN in localStorage
 js/youtube.js         link parsing, thumbnails, oEmbed title lookup
 js/player.js          IFrame API wrapper (auto-advance on end)
-js/parent.js          long-press entry, PIN pad, add/remove/reorder
+js/parent.js          PIN pad, dashboard/manager tabs, add/remove/reorder
+js/metrics.js         local daily counters and playback accounting
+js/dashboard.js       parent dashboard rendering and filters
 js/app.js             screen routing + grid + player wiring
 manifest.webmanifest  PWA manifest (installable)
 service-worker.js     caches the app shell for offline UI
 icons/icon.svg        app icon
+tests/               dependency-free metrics and player tests
 ```

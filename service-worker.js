@@ -2,7 +2,7 @@
 // Cross-origin requests (YouTube player + thumbnails) are never cached —
 // they always go to the network and need a connection to play.
 
-const CACHE = 'sia-v7';
+const CACHE = 'sia-v8';
 const ASSETS = [
   './',
   './index.html',
@@ -12,6 +12,8 @@ const ASSETS = [
   './js/youtube.js',
   './js/player.js',
   './js/parent.js',
+  './js/metrics.js',
+  './js/dashboard.js',
   './manifest.webmanifest',
   './icons/icon.svg',
 ];
